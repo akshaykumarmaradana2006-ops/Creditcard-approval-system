@@ -1,0 +1,200 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
+import {
+  BrainCircuit,
+  ChevronDown,
+  CloudCog,
+  Database,
+  LayoutDashboard,
+  Server,
+  Users,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
+import { Reveal } from "@/components/site/Reveal";
+import { architectureLayers } from "@/lib/project-data";
+
+const icons: Record<string, LucideIcon> = {
+  Users,
+  LayoutDashboard,
+  Server,
+  BrainCircuit,
+  Database,
+  CloudCog,
+};
+
+export const Route = createFileRoute("/architecture")({
+  head: () => ({
+    meta: [
+      { title: "Technical Architecture | CreditSense Credit Approval AI" },
+      {
+        name: "description",
+        content:
+          "Interactive six-layer architecture: user, presentation, application, machine learning, data and IBM Cloud deployment layers.",
+      },
+      { property: "og:title", content: "Technical Architecture | CreditSense" },
+      {
+        property: "og:description",
+        content: "Explore the six-layer credit approval prediction architecture with animated data flow.",
+      },
+    ],
+  }),
+  component: ArchitecturePage,
+});
+
+function ArchitecturePage() {
+  const [open, setOpen] = useState<string | null>("ml");
+  const [hovered, setHovered] = useState<number | null>(null);
+
+  return (
+    <div className="px-4 pb-10 sm:px-6">
+      <section className="mx-auto max-w-6xl py-10 text-center">
+        <Reveal>
+          <span className="glass inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground">
+            <Sparkles className="h-3.5 w-3.5 text-primary" /> Enterprise architecture
+          </span>
+          <h1 className="mt-5 text-4xl font-extrabold sm:text-5xl">
+            Technical <span className="gradient-text">Architecture</span>
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
+            Six cooperating layers move an applicant record from the browser through Flask, into the
+            trained XGBoost model on IBM Watson Machine Learning, and back as an approval decision.
+            Hover a layer to highlight the flow, click to expand its internals.
+          </p>
+        </Reveal>
+      </section>
+
+      <section className="mx-auto max-w-7xl pb-8">
+        <div className="grid gap-4 lg:grid-cols-6">
+          {architectureLayers.map((layer, i) => {
+            const Icon = icons[layer.icon] ?? Sparkles;
+            const isOpen = open === layer.id;
+            const active = hovered === null || hovered >= i;
+            return (
+              <Reveal key={layer.id} delay={i * 0.06} className="relative">
+                <div className="relative">
+                  <motion.button
+                    type="button"
+                    onClick={() => setOpen(isOpen ? null : layer.id)}
+                    onMouseEnter={() => setHovered(i)}
+                    onMouseLeave={() => setHovered(null)}
+                    aria-expanded={isOpen}
+                    whileHover={{ y: -6 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                    className={`glass gradient-soft relative flex h-full w-full flex-col rounded-3xl p-5 text-left transition-opacity ${
+                      active ? "opacity-100" : "opacity-50"
+                    } ${isOpen ? "shadow-glow ring-1 ring-primary/40" : ""}`}
+                  >
+                    <span className="gradient-brand absolute inset-x-5 top-0 h-0.5 rounded-full opacity-70" />
+                    <span className="gradient-brand inline-flex h-11 w-11 items-center justify-center rounded-2xl text-primary-foreground shadow-glow">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="mt-4 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+                      Layer 0{i + 1}
+                    </span>
+                    <span className="mt-1 text-base font-semibold">{layer.title}</span>
+                    <span className="mt-2 text-xs text-muted-foreground">{layer.summary}</span>
+                    <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                      {isOpen ? "Hide details" : "Expand details"}
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                    </span>
+                  </motion.button>
+
+                  {/* connector */}
+                  {i < architectureLayers.length - 1 && (
+                    <>
+                      <span className="absolute -bottom-4 left-1/2 hidden h-4 w-px -translate-x-1/2 lg:hidden" />
+                      <svg
+                        aria-hidden
+                        className="absolute right-[-14px] top-1/2 hidden h-4 w-6 -translate-y-1/2 lg:block"
+                        viewBox="0 0 24 12"
+                      >
+                        <line
+                          x1="0"
+                          y1="6"
+                          x2="24"
+                          y2="6"
+                          stroke="var(--primary)"
+                          strokeWidth="2"
+                          strokeDasharray="5 5"
+                          className="animate-flow"
+                        />
+                      </svg>
+                      <svg aria-hidden className="mx-auto block h-6 w-4 lg:hidden" viewBox="0 0 12 24">
+                        <line
+                          x1="6"
+                          y1="0"
+                          x2="6"
+                          y2="24"
+                          stroke="var(--primary)"
+                          strokeWidth="2"
+                          strokeDasharray="5 5"
+                          className="animate-flow"
+                        />
+                      </svg>
+                    </>
+                  )}
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-5xl">
+        <AnimatePresence mode="wait">
+          {open && (
+            <motion.div
+              key={open}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="glass-card p-8"
+            >
+              {(() => {
+                const layer = architectureLayers.find((l) => l.id === open)!;
+                const Icon = icons[layer.icon] ?? Sparkles;
+                return (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <span className="gradient-soft inline-flex h-10 w-10 items-center justify-center rounded-xl text-primary">
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <h2 className="text-xl font-bold">{layer.title}</h2>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">{layer.summary}</p>
+                    <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+                      {layer.details.map((d) => (
+                        <li key={d} className="glass flex items-start gap-3 rounded-2xl p-4 text-sm">
+                          <span className="gradient-brand mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" />
+                          {d}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                );
+              })()}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </section>
+
+      <section className="mx-auto mt-16 grid max-w-5xl gap-5 md:grid-cols-3">
+        {[
+          { t: "Request / Response", d: "Browser ↔ Flask ↔ Watson ML scoring endpoint, synchronous and stateless." },
+          { t: "Data Flow", d: "Raw records → cleaning → feature engineering → 80/20 split → processed dataset." },
+          { t: "Deployment Flow", d: "Artifacts pushed from training notebooks into Cloud Object Storage." },
+        ].map((f, i) => (
+          <Reveal key={f.t} delay={i * 0.06}>
+            <div className="glass-card h-full p-6">
+              <h3 className="font-semibold">{f.t}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{f.d}</p>
+            </div>
+          </Reveal>
+        ))}
+      </section>
+    </div>
+  );
+}
